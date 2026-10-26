@@ -1,0 +1,4 @@
+sarvamai>=0.1.39
+fastapi
+uvicorn
+python-multipart

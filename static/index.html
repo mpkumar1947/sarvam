@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shikayat Saathi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Serif:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#f5f0e6;--card:#fffdf8;--ink:#1d2433;--muted:#5d6577;--line:#e2d9c8;--accent:#b8410f;--accent-soft:#fbe7dc;--ok:#256b45;--warn:#9a6700;--bad:#b42318}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 "Noto Sans","Noto Sans Devanagari",system-ui,sans-serif}
+.wrap{max-width:720px;margin:0 auto;padding:28px 16px 64px}
+header h1{font:600 32px/1.1 "Noto Serif",Georgia,serif;margin:0}
+header p{margin:6px 0 0;color:var(--muted)}
+.tag{font-family:"Noto Sans Devanagari";color:var(--accent);font-weight:600}
+.steps{display:flex;gap:8px;margin:20px 0 14px;font-size:13px;color:var(--muted)}
+.steps span{flex:1;border-top:3px solid var(--line);padding-top:6px}
+.steps span.on{border-color:var(--accent);color:var(--ink);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:14px}
+.mic-row{display:flex;align-items:center;gap:16px}
+#mic{width:72px;height:72px;border-radius:50%;border:0;background:var(--accent);color:#fff;cursor:pointer;flex:none;display:grid;place-items:center;box-shadow:0 4px 14px rgba(184,65,15,.3);transition:transform .1s}
+#mic:active{transform:scale(.96)}
+#mic.rec{background:var(--bad);animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(180,35,24,.45)}50%{box-shadow:0 0 0 14px rgba(180,35,24,0)}}
+#mic svg{width:30px;height:30px}
+.hint{color:var(--muted);font-size:14px}
+.hint b{color:var(--ink)}
+textarea{width:100%;min-height:130px;margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fff;color:var(--ink);resize:vertical}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+.b{display:inline-block;border:1px solid var(--line);background:#fff;color:var(--ink);padding:9px 14px;border-radius:999px;font:inherit;font-size:14px;cursor:pointer}
+.b:hover{border-color:var(--ink)}
+button.primary{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600;padding:11px 20px}
+button:disabled{opacity:.5;cursor:wait}
+.chip{display:inline-block;font-size:12px;padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-weight:600}
+.samples{font-size:13px;color:var(--muted)}
+.samples button{font-size:13px;padding:6px 12px}
+#result{display:none}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin:14px 0}
+.meta div small{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.subject{font:600 20px/1.3 "Noto Serif",Georgia,serif;margin:6px 0 0}
+.u-high{background:#fde8e6;color:var(--bad)}.u-medium{background:#fdf1d8;color:var(--warn)}.u-low{background:#e3f1e8;color:var(--ok)}
+.letter{white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:6px}
+.missing{background:var(--accent-soft);border-radius:10px;padding:12px 14px;margin-top:14px}
+.missing ul{margin:6px 0 0;padding-left:20px}
+.readback{margin-top:14px;padding:12px 14px;border-left:3px solid var(--accent);background:#fff}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;display:none;max-width:90vw}
+a{color:var(--accent)}
+footer{margin-top:28px;font-size:13px;color:var(--muted)}
+@media (max-width:520px){.meta{grid-template-columns:1fr}header h1{font-size:26px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Shikayat Saathi</h1>
+    <p><span class="tag">बोलिए, हम लिख देंगे।</span> Speak your complaint in any Indian language. Get a ready-to-file CPGRAMS grievance.</p>
+  </header>
+
+  <div class="steps"><span id="s1" class="on">1. Bolo / Speak</span><span id="s2">2. Jaancho / Check</span><span id="s3">3. Bhejo / File</span></div>
+
+  <div class="card">
+    <div class="mic-row">
+      <button id="mic" aria-label="Record">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+      </button>
+      <div class="hint" id="mic-hint"><b>Tap to speak</b>, up to 29 seconds. Tap again to stop. Record again to add more details.</div>
+    </div>
+    <textarea id="text" placeholder="Your complaint appears here. You can also type or edit it."></textarea>
+    <div class="row">
+      <span class="chip" id="lang" style="display:none"></span>
+      <label class="b" style="cursor:pointer">Upload voice note<input id="file" type="file" accept="audio/*" hidden></label>
+      <button class="b" id="clear">Clear</button>
+      <button class="b primary" id="go">Draft grievance</button>
+    </div>
+    <div class="row samples">Try a sample:
+      <button class="b" data-s="0">Pension (Hindi)</button>
+      <button class="b" data-s="1">Water supply (Hindi)</button>
+      <button class="b" data-s="2">Train refund (Tamil)</button>
+      <button class="b" data-s="3">Electricity (Telugu)</button>
+    </div>
+  </div>
+
+  <div class="card" id="result">
+    <span class="chip" id="r-cat"></span> <span class="chip" id="r-urg"></span>
+    <p class="subject" id="r-subject"></p>
+    <div class="meta">
+      <div><small>Send to</small><span id="r-dept"></span></div>
+      <div><small>Location</small><span id="r-loc"></span></div>
+      <div><small>When</small><span id="r-date"></span></div>
+      <div><small>Relief sought</small><span id="r-relief"></span></div>
+    </div>
+    <small class="hint">Grievance text</small>
+    <div class="letter" id="r-text"></div>
+    <div class="readback"><div id="r-read"></div><div class="row"><button class="b" id="listen">Suno / Listen</button></div></div>
+    <div class="missing" id="r-missing"><b>Add these to make it stronger</b> <span class="hint">(record again, then draft again)</span><ul id="r-mlist"></ul></div>
+    <div class="row">
+      <button class="b primary" id="copy">Copy for portal</button>
+      <button class="b" id="dl">Download .txt</button>
+      <a class="b" href="https://pgportal.gov.in" target="_blank" rel="noopener" style="text-decoration:none">Open pgportal.gov.in</a>
+    </div>
+  </div>
+
+  <footer>Built on Sarvam AI: Saaras v4 (speech to text), Sarvam-105B (drafting), Bulbul (voice). Review every draft before filing.</footer>
+</div>
+<div id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const SAMPLES = [
+  ["मेरे पिताजी रेलवे से रिटायर हुए हैं। पिछले चार महीने से उनकी पेंशन बैंक खाते में नहीं आई है। बैंक वाले बोलते हैं कि ऊपर से पैसा नहीं आया, और रेलवे ऑफिस वाले बोलते हैं कि बैंक से पूछो। दो बार ऑफिस जा चुके हैं, कोई सुनवाई नहीं हुई। उनकी दवाइयों का खर्चा इसी पेंशन से चलता है। कृपया जल्दी पेंशन चालू करवाइए।", "hi-IN"],
+  ["हमारे मोहल्ले में पिछले तीन हफ्ते से पानी की सप्लाई बिल्कुल बंद है। हम लखनऊ के अलीगंज में रहते हैं। जल संस्थान में दो बार शिकायत की लेकिन कोई नहीं आया। लोग टैंकर से पानी खरीद रहे हैं, बुज़ुर्गों और बच्चों को बहुत दिक्कत है। कृपया सप्लाई जल्दी ठीक करवाइए।", "hi-IN"],
+  ["நான் சென்னையில் இருந்து மதுரைக்கு ரயில் டிக்கெட் ரத்து செய்தேன். ஆனால் இரண்டு மாதங்கள் ஆகியும் பணம் என் கணக்கில் திரும்ப வரவில்லை. வாடிக்கையாளர் சேவைக்கு மூன்று முறை அழைத்தேன், பதில் இல்லை. தயவுசெய்து என் பணத்தை திருப்பித் தாருங்கள்.", "ta-IN"],
+  ["మా ఊరిలో వారం రోజులుగా కరెంటు లేదు. విద్యుత్ కార్యాలయానికి రెండు సార్లు ఫిర్యాదు చేశాము, కానీ ఎవరూ రాలేదు. పిల్లల చదువుకు, వృద్ధులకు చాలా ఇబ్బందిగా ఉంది. దయచేసి వెంటనే కరెంటు సరఫరా పునరుద్ధరించండి.", "te-IN"],
+];
+const LANGS = {"hi-IN":"Hindi","bn-IN":"Bengali","ta-IN":"Tamil","te-IN":"Telugu","kn-IN":"Kannada","ml-IN":"Malayalam","mr-IN":"Marathi","gu-IN":"Gujarati","pa-IN":"Punjabi","od-IN":"Odia","en-IN":"English","ur-IN":"Urdu","as-IN":"Assamese"};
+let lang = null, rec = null, stream = null, chunks = [], timer = null, last = null, audioCache = {};
+
+function toast(msg, ms = 3500) { const t = $("toast"); t.textContent = msg; t.style.display = "block"; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = "none", ms); }
+function setLang(l) { lang = l; const c = $("lang"); if (l) { c.textContent = "Language: " + (LANGS[l] || l); c.style.display = "inline-block"; } else c.style.display = "none"; }
+function step(n) { [1,2,3].forEach(i => $("s"+i).classList.toggle("on", i <= n)); }
+
+async function api(path, body, isForm) {
+  const r = await fetch(path, isForm ? {method: "POST", body} : {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.detail || ("HTTP " + r.status));
+  return j;
+}
+
+function encodeWav(f, sr) {
+  const b = new ArrayBuffer(44 + f.length * 2), v = new DataView(b);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, "RIFF"); v.setUint32(4, 36 + f.length * 2, true); w(8, "WAVE"); w(12, "fmt ");
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  w(36, "data"); v.setUint32(40, f.length * 2, true);
+  for (let i = 0; i < f.length; i++) { const x = Math.max(-1, Math.min(1, f[i])); v.setInt16(44 + i * 2, x < 0 ? x * 0x8000 : x * 0x7fff, true); }
+  return new Blob([v], {type: "audio/wav"});
+}
+
+async function toWav16k(blob) {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const src = await ctx.decodeAudioData(await blob.arrayBuffer());
+  ctx.close();
+  const secs = Math.min(src.duration, 29);
+  if (src.duration > 29.5) toast("Only the first 29 seconds are used. Record again to add more.");
+  const off = new OfflineAudioContext(1, Math.ceil(secs * 16000), 16000);
+  const s = off.createBufferSource(); s.buffer = src; s.connect(off.destination); s.start();
+  return encodeWav((await off.startRendering()).getChannelData(0), 16000);
+}
+
+async function sendAudio(blob) {
+  $("mic-hint").innerHTML = "<b>Transcribing…</b>";
+  try {
+    const fd = new FormData(); fd.append("file", await toWav16k(blob), "audio.wav");
+    const j = await api("/api/transcribe", fd, true);
+    if (!j.transcript) throw new Error("No speech detected, try again closer to the mic");
+    const ta = $("text"); ta.value = (ta.value.trim() ? ta.value.trim() + "\n" : "") + j.transcript;
+    if (j.language_code) setLang(j.language_code);
+    $("mic-hint").innerHTML = "<b>Got it.</b> Check the text, record more, or tap Draft grievance.";
+  } catch (e) { toast(e.message); $("mic-hint").innerHTML = "<b>Tap to speak</b>, up to 29 seconds."; }
+}
+
+$("mic").onclick = async () => {
+  if (rec && rec.state === "recording") { rec.stop(); return; }
+  try { stream = await navigator.mediaDevices.getUserMedia({audio: true}); }
+  catch (e) { toast("Microphone blocked. Allow mic access, or open the site over https."); return; }
+  chunks = []; rec = new MediaRecorder(stream);
+  rec.ondataavailable = e => e.data.size && chunks.push(e.data);
+  rec.onstop = () => { clearInterval(timer); $("mic").classList.remove("rec"); stream.getTracks().forEach(t => t.stop()); sendAudio(new Blob(chunks, {type: rec.mimeType})); };
+  rec.start(); $("mic").classList.add("rec");
+  let left = 29; $("mic-hint").innerHTML = `<b>Listening…</b> ${left}s left. Tap to stop.`;
+  timer = setInterval(() => { left--; $("mic-hint").innerHTML = `<b>Listening…</b> ${left}s left. Tap to stop.`; if (left <= 0) rec.stop(); }, 1000);
+};
+
+$("file").onchange = e => { const f = e.target.files[0]; if (f) sendAudio(f); e.target.value = ""; };
+
+document.querySelectorAll("[data-s]").forEach(b => b.onclick = () => { const [t, l] = SAMPLES[+b.dataset.s]; $("text").value = t; setLang(l); });
+
+$("go").onclick = async () => {
+  const text = $("text").value.trim();
+  if (!text) { toast("Speak or type your complaint first"); return; }
+  const b = $("go"); b.disabled = true; b.textContent = "Drafting…";
+  try {
+    const g = await api("/api/draft", {text, language_code: lang});
+    last = g; audioCache = {}; render(g); step(2);
+    playReadback().catch(() => {});
+  } catch (e) { toast(e.message); }
+  b.disabled = false; b.textContent = "Draft grievance";
+};
+
+function render(g) {
+  $("r-cat").textContent = g.category || "Other";
+  const u = (g.urgency || "medium").toLowerCase(); const ue = $("r-urg"); ue.textContent = u + " urgency"; ue.className = "chip u-" + u;
+  $("r-subject").textContent = g.subject || "";
+  $("r-dept").textContent = g.department || "-";
+  $("r-loc").textContent = g.location || "-";
+  $("r-date").textContent = g.incident_date || "-";
+  $("r-relief").textContent = g.relief_sought || "-";
+  $("r-text").textContent = g.grievance_text || "";
+  $("r-read").textContent = g.readback || "";
+  const ml = $("r-mlist"); ml.innerHTML = "";
+  (g.missing_info || []).forEach(q => { const li = document.createElement("li"); li.textContent = q; ml.appendChild(li); });
+  $("r-missing").style.display = (g.missing_info || []).length ? "block" : "none";
+  $("result").style.display = "block";
+  $("result").scrollIntoView({behavior: "smooth", block: "start"});
+}
+
+async function playReadback() {
+  if (!last || !last.readback) return;
+  const key = last.readback;
+  if (!audioCache[key]) audioCache[key] = (await api("/api/speak", {text: key, language_code: lang})).audio;
+  await new Audio("data:audio/mpeg;base64," + audioCache[key]).play();
+}
+
+$("listen").onclick = async () => { const b = $("listen"); b.disabled = true; try { await playReadback(); } catch (e) { toast(e.message); } b.disabled = false; };
+
+function letter(g) { return `Subject: ${g.subject}\n\nTo: ${g.department}\n\n${g.grievance_text}\n\nRelief sought: ${g.relief_sought}`; }
+
+$("copy").onclick = async () => {
+  if (!last) return;
+  try { await navigator.clipboard.writeText(letter(last)); toast("Copied. Paste it into the grievance box on pgportal.gov.in"); step(3); }
+  catch (e) { toast("Copy blocked, use Download instead"); }
+};
+
+$("dl").onclick = () => {
+  if (!last) return;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([letter(last)], {type: "text/plain"}));
+  a.download = "grievance.txt"; a.click(); step(3);
+};
+$("clear").onclick = () => { $("text").value = ""; setLang(null); last = null; $("result").style.display = "none"; step(1); };
+</script>
+</body>
+</html>
